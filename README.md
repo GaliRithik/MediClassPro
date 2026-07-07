@@ -2,6 +2,9 @@
 
 MediClassPro is an AI-powered web application that helps classify medicines and provides drug recommendations through a simple and user-friendly interface. The project is developed using Python and Flask with an HTML, CSS, and JavaScript frontend.
 
+<img width="1918" height="1016" alt="image" src="https://github.com/user-attachments/assets/95f6ed14-af41-48c3-aedf-bfcdfec9fae4" />
+
+
 ---
 
 ## 📌 Features
