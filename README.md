@@ -4,6 +4,11 @@ MediClassPro is an AI-powered web application that helps classify medicines and 
 
 <img width="1918" height="1016" alt="image" src="https://github.com/user-attachments/assets/95f6ed14-af41-48c3-aedf-bfcdfec9fae4" />
 
+<img width="1919" height="1021" alt="Screenshot 2026-07-07 141700" src="https://github.com/user-attachments/assets/670d4993-9714-4714-8a15-d7080cd87f17" />
+
+<img width="1919" height="1015" alt="Screenshot 2026-07-07 141903" src="https://github.com/user-attachments/assets/201d80ac-47d5-4afc-87c0-5f4e4dc0f26c" />
+
+<img width="1919" height="1015" alt="Screenshot 2026-07-07 141903" src="https://github.com/user-attachments/assets/20be45b1-59f4-4e1d-96aa-eb444b2c8baa" />
 
 ---
 
