@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MediClass Pro – Drug Recommendation System</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --green: #0a6e5c; --green-dark: #085548; --green-light: #e6f4f1;
+    --accent: #e8a020; --red: #c0392b; --orange: #d97706; --blue: #2563eb;
+    --text: #1a2e2b; --muted: #6b7f7c; --border: #d1e0dc;
+    --bg: #f0f5f3; --white: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── Auth ── */
+  #auth-screen {
+    min-height: 100vh; display: flex;
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+  }
+  .auth-left {
+    flex: 1; display: flex; flex-direction: column; justify-content: center;
+    padding: 60px 64px; color: #fff;
+  }
+  .auth-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 52px; }
+  .auth-logo-icon {
+    width: 50px; height: 50px; background: rgba(255,255,255,0.15);
+    border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px;
+  }
+  .auth-logo-text { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; }
+  .auth-logo-sub { font-size: 10px; opacity: 0.6; letter-spacing: 2px; }
+  .auth-left h1 { font-family: 'Playfair Display', serif; font-size: 40px; line-height: 1.2; margin-bottom: 18px; font-weight: 400; }
+  .auth-left p { opacity: 0.8; font-size: 15px; line-height: 1.8; max-width: 380px; }
+  .auth-features { display: flex; gap: 32px; margin-top: 48px; }
+  .auth-feat { text-align: center; opacity: 0.85; }
+  .auth-feat-icon { font-size: 26px; margin-bottom: 6px; }
+  .auth-feat-label { font-size: 11px; letter-spacing: 1px; }
+  .auth-right {
+    width: 480px; background: #fff; display: flex;
+    flex-direction: column; justify-content: center; padding: 52px 48px;
+  }
+  .auth-right h2 { font-family: 'Playfair Display', serif; font-size: 28px; margin-bottom: 4px; }
+  .auth-right p { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 6px; }
+  .form-input {
+    width: 100%; padding: 11px 14px; border-radius: 10px;
+    border: 1.5px solid var(--border); font-family: inherit;
+    font-size: 14px; color: var(--text); outline: none; transition: border 0.2s;
+  }
+  .form-input:focus { border-color: var(--green); }
+  .form-select {
+    width: 100%; padding: 11px 14px; border-radius: 10px;
+    border: 1.5px solid var(--border); font-family: inherit;
+    font-size: 14px; color: var(--text); outline: none; background: #fff; cursor: pointer;
+  }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 26px; border-radius: 10px; border: none; font-family: inherit;
+    font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .btn-primary { background: var(--green); color: #fff; box-shadow: 0 4px 14px rgba(10,110,92,0.35); }
+  .btn-primary:hover { background: var(--green-dark); }
+  .btn-outline { background: transparent; color: var(--green); border: 2px solid var(--green); }
+  .btn-outline:hover { background: var(--green-light); }
+  .btn-ghost { background: var(--green-light); color: var(--green); }
+  .btn-full { width: 100%; }
+  .btn-lg { padding: 14px 32px; font-size: 15px; }
+  .btn-sm { padding: 7px 16px; font-size: 12px; }
+  .auth-switch { text-align: center; margin-top: 20px; font-size: 14px; color: var(--muted); }
+  .auth-switch a { color: var(--green); font-weight: 700; cursor: pointer; text-decoration: none; }
+  .auth-note { margin-top: 28px; padding: 12px 16px; background: var(--green-light); border-radius: 10px; font-size: 12px; color: var(--green); text-align: center; }
+  .error-msg { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: var(--red); display: none; }
+
+  /* ── App Layout ── */
+  #app-screen { display: none; flex-direction: row; min-height: 100vh; }
+  .sidebar {
+    width: 240px; background: var(--green); color: #fff;
+    display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; flex-shrink: 0;
+  }
+  .sidebar-logo { padding: 26px 22px 18px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .sidebar-logo-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .sidebar-logo-icon { font-size: 24px; }
+  .sidebar-logo-name { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; }
+  .sidebar-logo-sub { font-size: 9px; opacity: 0.55; letter-spacing: 2px; }
+  .user-chip {
+    background: rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .user-avatar {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px; color: #fff; flex-shrink: 0;
+  }
+  .user-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-role { font-size: 11px; opacity: 0.6; }
+  .sidebar-nav { flex: 1; padding: 14px 10px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px; padding: 11px 14px;
+    border-radius: 10px; margin-bottom: 4px; cursor: pointer; font-size: 14px;
+    color: rgba(255,255,255,0.65); border-left: 3px solid transparent;
+    transition: all 0.18s; font-weight: 400; background: transparent; border-top: none; border-right: none; border-bottom: none;
+    width: 100%; text-align: left; font-family: inherit;
+  }
+  .nav-item:hover { color: #fff; background: rgba(255,255,255,0.08); }
+  .nav-item.active { color: #fff; background: rgba(255,255,255,0.15); font-weight: 700; border-left-color: var(--accent); }
+  .nav-icon { font-size: 18px; }
+  .sidebar-footer { padding: 14px 10px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .logout-btn {
+    width: 100%; padding: 10px 14px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2); background: transparent;
+    color: rgba(255,255,255,0.75); cursor: pointer; font-family: inherit;
+    font-size: 13px; display: flex; align-items: center; gap: 8px;
+  }
+  .main-content { flex: 1; background: var(--bg); overflow-y: auto; }
+  .main-inner { max-width: 1060px; margin: 0 auto; padding: 36px 40px; }
+
+  /* ── Progress Steps ── */
+  .progress-steps { display: flex; align-items: center; gap: 10px; margin-bottom: 32px; }
+  .step-item { display: flex; align-items: center; gap: 8px; }
+  .step-circle {
+    width: 28px; height: 28px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
+    border: 2px solid #e2e8f0; background: #e2e8f0; color: var(--muted); flex-shrink: 0;
+  }
+  .step-circle.active { background: var(--green); border-color: var(--green); color: #fff; }
+  .step-circle.done { background: var(--green-light); border-color: var(--green); color: var(--green); }
+  .step-label { font-size: 13px; color: var(--muted); }
+  .step-label.active { color: var(--green); font-weight: 700; }
+  .step-line { flex: 1; height: 2px; background: #e2e8f0; min-width: 20px; }
+  .step-line.done { background: var(--green); }
+
+  /* ── Section Header ── */
+  .section-header { margin-bottom: 26px; }
+  .section-header h2 { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--text); margin-bottom: 4px; }
+  .section-header p { color: var(--muted); font-size: 14px; }
+
+  /* ── Card ── */
+  .card { background: #fff; border-radius: 14px; border: 1px solid var(--border); padding: 22px; }
+  .card-title { font-size: 14px; color: var(--green); font-weight: 700; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 2px solid var(--green-light); }
+
+  /* ── Grid ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+
+  /* ── Badge ── */
+  .badge { padding: 3px 11px; border-radius: 999px; font-size: 12px; font-weight: 700; display: inline-block; }
+
+  /* ── Pages ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── Chips ── */
+  .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    padding: 7px 14px; border-radius: 8px; border: 1.5px solid var(--border);
+    background: #fff; color: var(--muted); cursor: pointer; font-size: 13px;
+    font-family: inherit; font-weight: 400; transition: all 0.15s;
+  }
+  .chip:hover { border-color: var(--green); color: var(--green); }
+  .chip.selected { border-color: var(--green); background: var(--green); color: #fff; font-weight: 600; }
+  .chip-sm {
+    padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--border);
+    background: #fff; color: var(--muted); cursor: pointer; font-size: 12px;
+    font-family: inherit; transition: all 0.15s;
+  }
+  .chip-sm.selected { border-color: var(--green); background: var(--green-light); color: var(--green); font-weight: 700; }
+
+  /* ── Stat card ── */
+  .stat-card { padding: 18px 20px; border-left: 4px solid var(--green); }
+  .stat-icon { font-size: 24px; margin-bottom: 8px; }
+  .stat-value { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .stat-label { font-size: 12px; color: var(--muted); }
+
+  /* ── Disease banner ── */
+  .disease-banner {
+    background: linear-gradient(135deg, var(--green), var(--green-dark));
+    border-radius: 16px; padding: 28px 32px; color: #fff;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 18px; margin-bottom: 22px;
+  }
+  .disease-title { font-family: 'Playfair Display', serif; font-size: 30px; margin-bottom: 8px; }
+  .disease-desc { opacity: 0.85; font-size: 14px; line-height: 1.7; max-width: 500px; }
+  .conf-box { background: rgba(255,255,255,0.15); border-radius: 12px; padding: 14px 22px; text-align: center; }
+  .conf-value { font-size: 30px; font-weight: 700; }
+  .conf-label { font-size: 10px; opacity: 0.7; letter-spacing: 1.5px; }
+
+  /* Drug table */
+  .drug-row { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: grid; grid-template-columns: 180px 1fr 1fr 1fr; margin-bottom: 12px; }
+  .drug-name-cell { background: var(--green-light); padding: 14px 16px; border-right: 1px solid var(--border); }
+  .drug-cell { padding: 12px 14px; border-right: 1px solid var(--border); }
+  .drug-cell:last-child { border-right: none; }
+  .drug-cell-label { font-size: 10px; color: var(--muted); letter-spacing: 0.5px; margin-bottom: 3px; }
+  .drug-cell-value { font-weight: 600; color: var(--text); font-size: 13px; }
+  .drug-cell-note { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* Tips */
+  .tip-item { display: flex; gap: 10px; margin-bottom: 9px; font-size: 13px; color: var(--text); align-items: flex-start; }
+  .tip-icon { font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  /* History item */
+  .history-item { border-radius: 12px; overflow: hidden; margin-bottom: 12px; border: 1px solid var(--border); }
+  .history-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #fff; }
+  .history-header:hover { background: #fafafa; }
+  .history-body { border-top: 1px solid var(--border); padding: 18px 20px; background: #fff; display: none; }
+  .history-body.open { display: block; }
+
+  textarea { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--border); font-family: inherit; font-size: 13px; color: var(--text); resize: vertical; outline: none; line-height: 1.6; }
+  textarea:focus { border-color: var(--green); }
+
+  .disclaimer { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 13px 18px; font-size: 12px; color: #92400e; text-align: center; margin-top: 20px; }
+
+  @media (max-width: 768px) {
+    .auth-left { display: none; }
+    .auth-right { width: 100%; }
+    .grid-2, .grid-4, .grid-3 { grid-template-columns: 1fr; }
+    .drug-row { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .main-inner { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ AUTH SCREEN ═══════════════ -->
+<div id="auth-screen">
+  <div class="auth-left">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">⚕️</div>
+      <div>
+        <div class="auth-logo-text">MediClass Pro</div>
+        <div class="auth-logo-sub">DRUG RECOMMENDATION SYSTEM</div>
+      </div>
+    </div>
+    <h1>Intelligent Drug<br><em>Classification</em><br>& Recommendation</h1>
+    <p>Enter your symptoms and medical history. The system analyzes your condition and recommends appropriate medications with complete dosage and safety information.</p>
+    <div class="auth-features">
+      <div class="auth-feat"><div class="auth-feat-icon">🔬</div><div class="auth-feat-label">Analysis</div></div>
+      <div class="auth-feat"><div class="auth-feat-icon">💊</div><div class="auth-feat-label">Drug Matching</div></div>
+      <div class="auth-feat"><div class="auth-feat-icon">🛡️</div><div class="auth-feat-label">Safe & Accurate</div></div>
+    </div>
+  </div>
+  <div class="auth-right">
+    <!-- Login Form -->
+    <div id="login-form">
+      <h2>Welcome back</h2>
+      <p>Sign in to your MediClass account</p>
+      <div class="error-msg" id="login-error"></div>
+      <div class="form-group"><label class="form-label">Email Address *</label><input class="form-input" id="login-email" type="email" placeholder="you@example.com"/></div>
+      <div class="form-group"><label class="form-label">Password *</label><input class="form-input" id="login-password" type="password" placeholder="Enter your password"/></div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="handleLogin()">Sign In →</button>
+      <div class="auth-switch">Don't have an account? <a onclick="toggleAuth('signup')">Sign Up Free</a></div>
+      <div class="auth-note">🔒 Your data is stored securely in your browser</div>
+    </div>
+    <!-- Signup Form -->
+    <div id="signup-form" style="display:none">
+      <h2>Create account</h2>
+      <p>Join MediClass Pro today — it's free</p>
+      <div class="error-msg" id="signup-error"></div>
+      <div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" id="signup-name" placeholder="e.g. Rahul Sharma"/></div>
+      <div class="form-group"><label class="form-label">Email Address *</label><input class="form-input" id="signup-email" type="email" placeholder="you@example.com"/></div>
+      <div class="form-group"><label class="form-label">Password *</label><input class="form-input" id="signup-password" type="password" placeholder="Minimum 6 characters"/></div>
+      <div class="form-group"><label class="form-label">Confirm Password *</label><input class="form-input" id="signup-confirm" type="password" placeholder="Re-enter password"/></div>
+      <div class="form-group"><label class="form-label">I am a</label>
+        <select class="form-select" id="signup-role">
+          <option>Patient</option><option>Doctor</option><option>Pharmacist</option><option>Student</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="handleSignup()">Create Account →</button>
+      <div class="auth-switch">Already have an account? <a onclick="toggleAuth('login')">Sign In</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ APP SCREEN ═══════════════ -->
+<div id="app-screen">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-row">
+        <div class="sidebar-logo-icon">⚕️</div>
+        <div>
+          <div class="sidebar-logo-name">MediClass Pro</div>
+          <div class="sidebar-logo-sub">DRUG SYSTEM</div>
+        </div>
+      </div>
+      <div class="user-chip">
+        <div class="user-avatar" id="sidebar-avatar">U</div>
+        <div>
+          <div class="user-name" id="sidebar-name">User</div>
+          <div class="user-role" id="sidebar-role">Patient</div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <button class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">🏠</span> Dashboard</button>
+      <button class="nav-item" onclick="showPage('patient')"><span class="nav-icon">👤</span> Patient Details</button>
+      <button class="nav-item" onclick="showPage('symptoms')"><span class="nav-icon">🩺</span> Symptoms</button>
+      <button class="nav-item" onclick="showPage('result')"><span class="nav-icon">💊</span> Recommendations</button>
+      <button class="nav-item" onclick="showPage('history')"><span class="nav-icon">📋</span> My History</button>
+    </div>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="handleLogout()">🚪 Sign Out</button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="main-inner">
+
+      <!-- ── DASHBOARD ── -->
+      <div class="page active" id="page-dashboard">
+        <div style="background:linear-gradient(135deg,var(--green),var(--green-dark));border-radius:16px;padding:28px 32px;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
+          <div>
+            <div style="font-size:12px;opacity:0.7;letter-spacing:1px;margin-bottom:6px;">WELCOME BACK</div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:400;margin-bottom:6px;" id="dash-welcome">Good day 👋</h2>
+            <p style="opacity:0.8;font-size:14px;">Ready to analyze symptoms and get drug recommendations.</p>
+          </div>
+          <button class="btn btn-primary" style="background:var(--accent);color:#fff;" onclick="showPage('patient')">+ New Analysis</button>
+        </div>
+        <div class="grid-4" style="margin-bottom:24px;">
+          <div class="card stat-card"><div class="stat-icon">📋</div><div class="stat-value" id="stat-total">0</div><div class="stat-label">Total Reports</div></div>
+          <div class="card stat-card" style="border-left-color:var(--accent)"><div class="stat-icon">🦠</div><div class="stat-value" id="stat-last" style="font-size:14px;margin-top:6px;">—</div><div class="stat-label">Last Disease</div></div>
+          <div class="card stat-card" style="border-left-color:#16a34a"><div class="stat-icon">🎯</div><div class="stat-value" id="stat-conf">—</div><div class="stat-label">Avg Confidence</div></div>
+          <div class="card stat-card" style="border-left-color:var(--red)"><div class="stat-icon">⚠️</div><div class="stat-value" id="stat-severe">0</div><div class="stat-label">Severe Cases</div></div>
+        </div>
+        <div class="grid-3" style="margin-bottom:24px;">
+          <div class="card" style="cursor:pointer;transition:transform 0.2s;" onmouseenter="this.style.transform='translateY(-3px)'" onmouseleave="this.style.transform=''" onclick="showPage('patient')">
+            <div style="width:46px;height:46px;border-radius:12px;background:#3b82f618;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px;">👤</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:5px;">Patient Details</div>
+            <div style="font-size:13px;color:var(--muted);">Enter patient info before analysis</div>
+          </div>
+          <div class="card" style="cursor:pointer;transition:transform 0.2s;" onmouseenter="this.style.transform='translateY(-3px)'" onmouseleave="this.style.transform=''" onclick="showPage('symptoms')">
+            <div style="width:46px;height:46px;border-radius:12px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px;">🩺</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:5px;">Symptom Analysis</div>
+            <div style="font-size:13px;color:var(--muted);">Select symptoms and get diagnosis</div>
+          </div>
+          <div class="card" style="cursor:pointer;transition:transform 0.2s;" onmouseenter="this.style.transform='translateY(-3px)'" onmouseleave="this.style.transform=''" onclick="showPage('history')">
+            <div style="width:46px;height:46px;border-radius:12px;background:#f59e0b18;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px;">📋</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:5px;">View History</div>
+            <div style="font-size:13px;color:var(--muted);">Review all past reports</div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div style="font-weight:700;font-size:15px;">📋 Recent Reports</div>
+            <button class="btn btn-ghost btn-sm" onclick="showPage('history')">View All</button>
+          </div>
+          <div id="dash-history-list"><div style="text-align:center;padding:40px;color:var(--muted);"><div style="font-size:40px;margin-bottom:12px;">🔬</div><p>No reports yet. Start your first analysis!</p></div></div>
+        </div>
+      </div>
+
+      <!-- ── PATIENT ── -->
+      <div class="page" id="page-patient">
+        <div class="progress-steps">
+          <div class="step-item"><div class="step-circle active">1</div><span class="step-label active">Patient Details</span></div>
+          <div class="step-line"></div>
+          <div class="step-item"><div class="step-circle">2</div><span class="step-label">Symptoms</span></div>
+          <div class="step-line"></div>
+          <div class="step-item"><div class="step-circle">3</div><span class="step-label">Recommendation</span></div>
+        </div>
+        <div class="section-header"><h2>Patient Details</h2><p>Enter complete patient information for accurate diagnosis</p></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">👤 Personal Information</div>
+            <div class="grid-2" style="gap:0 14px;">
+              <div class="form-group"><label class="form-label">First Name *</label><input class="form-input" id="p-fname" placeholder="e.g. Rahul"/></div>
+              <div class="form-group"><label class="form-label">Last Name *</label><input class="form-input" id="p-lname" placeholder="e.g. Sharma"/></div>
+            </div>
+            <div class="form-group"><label class="form-label">Date of Birth</label><input class="form-input" id="p-dob" type="date"/></div>
+            <div class="form-group"><label class="form-label">Gender *</label>
+              <select class="form-select" id="p-gender"><option value="">Select...</option><option>Male</option><option>Female</option><option>Other</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Phone Number *</label><input class="form-input" id="p-phone" placeholder="+91 9876543210"/></div>
+            <div class="form-group"><label class="form-label">Email Address</label><input class="form-input" id="p-email" type="email" placeholder="patient@example.com"/></div>
+          </div>
+          <div class="card">
+            <div class="card-title">🏥 Medical Information</div>
+            <div class="grid-2" style="gap:0 14px;">
+              <div class="form-group"><label class="form-label">Height (cm)</label><input class="form-input" id="p-height" type="number" placeholder="170"/></div>
+              <div class="form-group"><label class="form-label">Weight (kg)</label><input class="form-input" id="p-weight" type="number" placeholder="65"/></div>
+            </div>
+            <div class="form-group"><label class="form-label">Blood Group</label>
+              <select class="form-select" id="p-blood"><option value="">Select...</option><option>A+</option><option>A−</option><option>B+</option><option>B−</option><option>AB+</option><option>AB−</option><option>O+</option><option>O−</option><option>Unknown</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Chronic Conditions</label>
+              <div class="chip-group" id="chronic-group">
+                <button class="chip-sm" onclick="toggleChip(this,'chronic')">Diabetes</button>
+                <button class="chip-sm" onclick="toggleChip(this,'chronic')">Hypertension</button>
+                <button class="chip-sm" onclick="toggleChip(this,'chronic')">Asthma</button>
+                <button class="chip-sm" onclick="toggleChip(this,'chronic')">Heart Disease</button>
+                <button class="chip-sm" onclick="toggleChip(this,'chronic')">Thyroid</button>
+                <button class="chip-sm" onclick="toggleChip(this,'chronic')">Kidney Disease</button>
+                <button class="chip-sm" onclick="toggleChip(this,'chronic')">None</button>
+              </div>
+            </div>
+            <div class="form-group"><label class="form-label">Known Drug Allergies</label><input class="form-input" id="p-allergies" placeholder="e.g. Penicillin, Aspirin"/></div>
+            <div class="form-group"><label class="form-label">Current Medications</label><input class="form-input" id="p-meds" placeholder="e.g. Metformin 500mg daily"/></div>
+            <div id="bmi-display" style="display:none;background:var(--green-light);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--green);"></div>
+          </div>
+        </div>
+        <div style="margin-top:20px;display:flex;justify-content:flex-end;gap:12px;">
+          <button class="btn btn-outline" onclick="showPage('dashboard')">← Dashboard</button>
+          <button class="btn btn-primary" onclick="savePatient()">Save & Continue →</button>
+        </div>
+      </div>
+
+      <!-- ── SYMPTOMS ── -->
+      <div class="page" id="page-symptoms">
+        <div class="progress-steps">
+          <div class="step-item"><div class="step-circle done">✓</div><span class="step-label">Patient Details</span></div>
+          <div class="step-line done"></div>
+          <div class="step-item"><div class="step-circle active">2</div><span class="step-label active">Symptoms</span></div>
+          <div class="step-line"></div>
+          <div class="step-item"><div class="step-circle">3</div><span class="step-label">Recommendation</span></div>
+        </div>
+        <div class="section-header"><h2>Symptoms & Problem Description</h2><p>Select all applicable symptoms and describe your condition</p></div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:22px;">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <div class="card-title" style="margin:0;border:none;padding:0;">Select Symptoms</div>
+              <span id="sym-count" style="font-size:13px;color:var(--muted);">0 selected</span>
+            </div>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">Select at least 2 symptoms for accurate diagnosis</p>
+            <div id="symptom-groups"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:18px;">
+            <div class="card">
+              <div class="card-title">📝 Problem Details</div>
+              <div class="form-group"><label class="form-label">Duration *</label>
+                <select class="form-select" id="s-duration"><option value="">Select...</option><option>Less than 1 day</option><option>1–3 days</option><option>4–7 days</option><option>1–2 weeks</option><option>2–4 weeks</option><option>More than 1 month</option></select>
+              </div>
+              <div class="form-group"><label class="form-label">Severity</label>
+                <select class="form-select" id="s-severity"><option value="">Select...</option><option>Mild – manageable</option><option>Moderate – affecting daily life</option><option>Severe – debilitating</option></select>
+              </div>
+              <div class="form-group"><label class="form-label">Worsens When</label>
+                <select class="form-select" id="s-timing"><option value="">Select...</option><option>Morning</option><option>Evening</option><option>Night</option><option>After eating</option><option>During activity</option><option>All the time</option></select>
+              </div>
+              <div class="form-group"><label class="form-label">Temperature</label>
+                <select class="form-select" id="s-temp"><option value="">Select...</option><option>Normal (97–99°F)</option><option>Low-grade fever (99–100.4°F)</option><option>Fever (100.4–102°F)</option><option>High fever (102°F+)</option><option>Not measured</option></select>
+              </div>
+              <div class="form-group"><label class="form-label">Additional Description</label>
+                <textarea id="s-desc" rows="4" placeholder="Describe your symptoms in your own words..."></textarea>
+              </div>
+            </div>
+            <div class="card" style="background:var(--green-light);border-color:rgba(10,110,92,0.2);">
+              <div style="font-size:12px;color:var(--green);line-height:1.7;">💡 <strong>Tip:</strong> The more symptoms you select and describe, the more accurate the recommendation will be.</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:20px;display:flex;justify-content:space-between;">
+          <button class="btn btn-outline" onclick="showPage('patient')">← Back</button>
+          <button class="btn btn-primary btn-lg" onclick="runAnalysis()">🔬 Analyze & Get Recommendations →</button>
+        </div>
+      </div>
+
+      <!-- ── RESULT ── -->
+      <div class="page" id="page-result">
+        <div class="progress-steps">
+          <div class="step-item"><div class="step-circle done">✓</div><span class="step-label">Patient Details</span></div>
+          <div class="step-line done"></div>
+          <div class="step-item"><div class="step-circle done">✓</div><span class="step-label">Symptoms</span></div>
+          <div class="step-line done"></div>
+          <div class="step-item"><div class="step-circle active">3</div><span class="step-label active">Recommendation</span></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+          <div class="section-header" style="margin:0;"><h2>AI Recommendation Report</h2><p id="result-subtitle">Generated report</p></div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-outline btn-sm" onclick="window.print()">🖨️ Print</button>
+            <button class="btn btn-ghost btn-sm" onclick="showPage('history')">📋 History</button>
+            <button class="btn btn-primary btn-sm" onclick="newAnalysis()">+ New Analysis</button>
+          </div>
+        </div>
+        <div id="result-content"></div>
+      </div>
+
+      <!-- ── HISTORY ── -->
+      <div class="page" id="page-history">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;">
+          <div class="section-header" style="margin:0;"><h2>Analysis History</h2><p>All your past drug recommendations</p></div>
+          <button class="btn btn-primary btn-sm" onclick="showPage('patient')">+ New Analysis</button>
+        </div>
+        <div id="history-list"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════
+const SYMPTOM_GROUPS = {
+  "🧠 Head & Throat":  ["Headache","Migraine","Sore Throat","Ear Pain","Nasal Congestion","Runny Nose"],
+  "🫁 Respiratory":    ["Cough","Dry Cough","Shortness of Breath","Wheezing","Chest Pain","Chest Tightness"],
+  "🫃 Digestive":      ["Nausea","Vomiting","Diarrhea","Abdominal Pain","Bloating","Loss of Appetite","Constipation"],
+  "🌡️ General Body":  ["Fever","Chills","Fatigue","Body Ache","Sweating","Weakness","Weight Loss"],
+  "🦷 Skin & Joints":  ["Rash","Itching","Joint Pain","Swelling","Back Pain","Muscle Cramps"],
+  "🧬 Neurological":   ["Dizziness","Blurred Vision","Numbness","Tingling","Insomnia","Confusion"],
+  "🫀 Cardiovascular": ["Palpitations","Rapid Heartbeat","Chest Tightness","Swollen Legs","Fainting"],
+  "🚽 Urinary":        ["Frequent Urination","Burning Urination","Blood in Urine","Dark Urine"],
+};
+
+const DISEASE_DB = [
+  { disease:"Common Cold", icd:"J00", keys:["runny nose","sore throat","cough","nasal congestion","headache","fatigue","sneezing"], min:2, sev:"Mild", rec:"7–10 days", spec:"General Physician", desc:"A viral infection of the upper respiratory tract caused by rhinoviruses. Very common and usually resolves on its own.", drugs:[{name:"Paracetamol",type:"Analgesic",dose:"500mg",freq:"Every 6 hours",dur:"5 days",food:"Yes",note:"Do not exceed 4g/day"},{name:"Cetirizine",type:"Antihistamine",dose:"10mg",freq:"Once daily (night)",dur:"5 days",food:"Preferably",note:"May cause drowsiness"},{name:"Dextromethorphan",type:"Cough Suppressant",dose:"15mg",freq:"Every 6–8 hours",dur:"5 days",food:"Yes",note:"Avoid with MAO inhibitors"}], life:["Rest as much as possible","Drink plenty of warm fluids","Steam inhalation for nasal relief","Gargle with warm salt water"], emerg:["Fever above 103°F","Difficulty breathing","Symptoms beyond 10 days"], warn:"Seek care if high fever or breathing difficulty develops." },
+  { disease:"Influenza (Flu)", icd:"J11.1", keys:["fever","body ache","chills","fatigue","headache","cough","sweating","weakness"], min:3, sev:"Moderate", rec:"1–2 weeks", spec:"General Physician", desc:"A contagious respiratory illness caused by influenza viruses that can cause mild to severe illness.", drugs:[{name:"Paracetamol",type:"Antipyretic",dose:"650mg",freq:"Every 6 hours",dur:"5 days",food:"Yes",note:"For fever and body pain"},{name:"Ibuprofen",type:"NSAID",dose:"400mg",freq:"Every 8 hours",dur:"3 days",food:"Yes – always",note:"Avoid on empty stomach"},{name:"Cetirizine",type:"Antihistamine",dose:"10mg",freq:"Once daily",dur:"5 days",food:"Preferably",note:"For nasal and throat symptoms"}], life:["Stay home and rest completely","Drink 8–10 glasses of water daily","Monitor temperature every 4 hours","Eat light easily digestible foods"], emerg:["Fever above 104°F","Persistent chest pain","Difficulty breathing","Confusion"], warn:"Go to emergency if you have trouble breathing or chest pain." },
+  { disease:"Gastroenteritis", icd:"A09", keys:["nausea","vomiting","diarrhea","abdominal pain","loss of appetite","bloating"], min:2, sev:"Moderate", rec:"3–7 days", spec:"Gastroenterologist", desc:"Inflammation of the stomach and intestines from bacterial or viral infections causing vomiting and diarrhea.", drugs:[{name:"ORS (Oral Rehydration Salts)",type:"Electrolyte",dose:"1 sachet/1L water",freq:"After every loose stool",dur:"Until resolved",food:"No",note:"Most critical treatment"},{name:"Ondansetron",type:"Antiemetic",dose:"4mg",freq:"Every 8 hours",dur:"3 days",food:"Preferably",note:"Controls nausea/vomiting"},{name:"Metronidazole",type:"Antibiotic",dose:"400mg",freq:"Three times daily",dur:"5 days",food:"Yes",note:"Avoid alcohol completely"}], life:["Stay hydrated with ORS","BRAT diet (Banana, Rice, Applesauce, Toast)","Avoid dairy and spicy foods","Wash hands frequently"], emerg:["No urination for 8+ hours","Blood in stool or vomit","Fever above 102°F","Symptoms beyond 7 days"], warn:"Seek immediate care for blood in stool or severe dehydration." },
+  { disease:"Hypertension", icd:"I10", keys:["headache","dizziness","chest pain","blurred vision","palpitations","shortness of breath"], min:2, sev:"Moderate", rec:"Ongoing management", spec:"Cardiologist", desc:"A long-term condition where blood pressure is persistently elevated, increasing risk of heart disease and stroke.", drugs:[{name:"Amlodipine",type:"Calcium Channel Blocker",dose:"5mg",freq:"Once daily",dur:"Ongoing",food:"Preferably",note:"Do not stop suddenly"},{name:"Losartan",type:"ARB",dose:"50mg",freq:"Once daily",dur:"Ongoing",food:"Yes",note:"Not for pregnant women"},{name:"Hydrochlorothiazide",type:"Diuretic",dose:"25mg",freq:"Once daily (morning)",dur:"Ongoing",food:"Yes",note:"Monitor potassium levels"}], life:["Reduce salt intake below 5g/day","Exercise 30 min daily","Avoid smoking and alcohol","Monitor BP daily at home"], emerg:["BP above 180/120 mmHg","Sudden severe headache","Chest pain","Vision changes"], warn:"Emergency if BP exceeds 180/120 or chest pain occurs." },
+  { disease:"Type 2 Diabetes", icd:"E11", keys:["frequent urination","fatigue","weakness","weight loss","blurred vision","sweating"], min:2, sev:"Moderate", rec:"Lifelong management", spec:"Endocrinologist", desc:"A chronic condition affecting blood sugar processing, requiring lifestyle changes and medication management.", drugs:[{name:"Metformin",type:"Antidiabetic",dose:"500mg",freq:"Twice daily with meals",dur:"Ongoing",food:"Yes – always",note:"May cause initial stomach upset"},{name:"Glipizide",type:"Sulfonylurea",dose:"5mg",freq:"Once daily before breakfast",dur:"Ongoing",food:"Before meals",note:"Monitor blood sugar"},{name:"Sitagliptin",type:"DPP-4 Inhibitor",dose:"100mg",freq:"Once daily",dur:"Ongoing",food:"Preferably",note:"Well tolerated"}], life:["Low sugar, low carb diet","Exercise 30 minutes daily","Monitor blood glucose daily","Maintain healthy weight"], emerg:["Blood sugar below 70 mg/dL","Blood sugar above 300 mg/dL","Confusion or loss of consciousness","Fruity breath smell"], warn:"Emergency if blood sugar drops below 70 or rises above 300 mg/dL." },
+  { disease:"Migraine", icd:"G43.9", keys:["headache","migraine","blurred vision","nausea","dizziness","vomiting"], min:2, sev:"Moderate", rec:"Hours to 3 days/episode", spec:"Neurologist", desc:"A neurological condition with intense headaches often accompanied by nausea, vomiting, and light sensitivity.", drugs:[{name:"Sumatriptan",type:"Triptan",dose:"50mg",freq:"At onset (repeat after 2hrs)",dur:"As needed",food:"Preferably",note:"Max 200mg/day"},{name:"Naproxen Sodium",type:"NSAID",dose:"550mg",freq:"Every 12 hours",dur:"3 days",food:"Yes",note:"Take at first sign"},{name:"Metoclopramide",type:"Antiemetic",dose:"10mg",freq:"Every 8 hours",dur:"3 days",food:"Before meals",note:"For nausea relief"}], life:["Rest in dark quiet room","Cold compress on forehead","Avoid personal triggers","Maintain regular sleep"], emerg:["Thunderclap headache (worst ever)","Headache with fever and stiff neck","Sudden vision loss","Neurological symptoms"], warn:"Emergency for sudden severe headache with neurological symptoms." },
+  { disease:"Bronchial Asthma", icd:"J45.9", keys:["wheezing","shortness of breath","chest tightness","cough","dry cough","chest pain"], min:2, sev:"Moderate", rec:"Ongoing management", spec:"Pulmonologist", desc:"Airways narrow and swell producing extra mucus, making breathing difficult and triggering coughing and wheezing.", drugs:[{name:"Salbutamol",type:"Short-Acting Beta Agonist",dose:"2 puffs (200mcg)",freq:"As needed",dur:"As needed",food:"No",note:"Rescue inhaler – rinse mouth after"},{name:"Budesonide",type:"Inhaled Corticosteroid",dose:"200mcg",freq:"Twice daily",dur:"Ongoing",food:"No",note:"Preventive – rinse mouth after"},{name:"Montelukast",type:"LTRA",dose:"10mg",freq:"Once daily (night)",dur:"Ongoing",food:"Preferably",note:"Report mood changes to doctor"}], life:["Avoid triggers (dust, smoke, pollen)","Keep inhaler always accessible","Practice breathing exercises","Maintain clean indoor air"], emerg:["Breathing not relieved by inhaler","Blue lips or fingernails","Unable to speak full sentences","No improvement with medication"], warn:"Call emergency if inhaler does not relieve breathing in 20 minutes." },
+  { disease:"Urinary Tract Infection", icd:"N39.0", keys:["burning urination","frequent urination","dark urine","blood in urine","abdominal pain","fever"], min:2, sev:"Mild", rec:"3–7 days", spec:"Urologist", desc:"An infection in the urinary system, most commonly affecting the bladder and urethra.", drugs:[{name:"Nitrofurantoin",type:"Urinary Antibiotic",dose:"100mg",freq:"Twice daily",dur:"5–7 days",food:"Yes",note:"Urine may turn brown – normal"},{name:"Trimethoprim",type:"Antibiotic",dose:"200mg",freq:"Twice daily",dur:"7 days",food:"Yes",note:"Complete full course"},{name:"Phenazopyridine",type:"Urinary Analgesic",dose:"200mg",freq:"Three times daily",dur:"2 days only",food:"After meals",note:"Turns urine orange – normal"}], life:["Drink 2–3 litres water daily","Urinate frequently","Wipe front to back","Avoid caffeine and alcohol"], emerg:["Fever above 101°F with chills","Severe back/side pain","Vomiting with UTI symptoms","No improvement after 3 days"], warn:"Seek care if high fever — may indicate kidney infection." },
+];
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let currentUser = null;
+let patientData = {};
+let selectedSymptoms = [];
+let lastResult = null;
+let reportHistory = [];
+
+// ═══════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════
+function toggleAuth(mode) {
+  document.getElementById('login-form').style.display   = mode === 'login'  ? 'block' : 'none';
+  document.getElementById('signup-form').style.display  = mode === 'signup' ? 'block' : 'none';
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = '⚠️ ' + msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 4000);
+}
+
+function handleSignup() {
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const pass = document.getElementById('signup-password').value;
+  const confirm = document.getElementById('signup-confirm').value;
+  const role = document.getElementById('signup-role').value;
+  if (!name || !email || !pass) return showError('signup-error', 'All fields are required');
+  if (pass !== confirm) return showError('signup-error', 'Passwords do not match');
+  if (pass.length < 6) return showError('signup-error', 'Password must be 6+ characters');
+  const users = JSON.parse(localStorage.getItem('mc_users') || '{}');
+  if (users[email]) return showError('signup-error', 'Email already registered');
+  users[email] = { name, email, password: pass, role };
+  localStorage.setItem('mc_users', JSON.stringify(users));
+  loginUser({ name, email, role });
+}
+
+function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value;
+  if (!email || !pass) return showError('login-error', 'Enter email and password');
+  const users = JSON.parse(localStorage.getItem('mc_users') || '{}');
+  const user = users[email];
+  if (!user || user.password !== pass) return showError('login-error', 'Invalid email or password');
+  loginUser(user);
+}
+
+function loginUser(user) {
+  currentUser = user;
+  localStorage.setItem('mc_session', JSON.stringify(user));
+  reportHistory = JSON.parse(localStorage.getItem('mc_history_' + user.email) || '[]');
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display  = 'flex';
+  document.getElementById('sidebar-name').textContent   = user.name;
+  document.getElementById('sidebar-role').textContent   = user.role;
+  document.getElementById('sidebar-avatar').textContent = user.name[0].toUpperCase();
+  document.getElementById('dash-welcome').textContent   = 'Good day, ' + user.name.split(' ')[0] + ' 👋';
+  buildSymptomGroups();
+  updateDashboard();
+}
+
+function handleLogout() {
+  localStorage.removeItem('mc_session');
+  currentUser = null; patientData = {}; selectedSymptoms = []; lastResult = null;
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display  = 'none';
+}
+
+// ═══════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick')?.includes("'" + page + "'")) n.classList.add('active');
+  });
+  if (page === 'dashboard') updateDashboard();
+  if (page === 'history')   renderHistory();
+}
+
+// ═══════════════════════════════════════════════════════
+//  CHIPS / TOGGLES
+// ═══════════════════════════════════════════════════════
+function toggleChip(el, group) {
+  el.classList.toggle('selected');
+}
+
+// ═══════════════════════════════════════════════════════
+//  PATIENT
+// ═══════════════════════════════════════════════════════
+function savePatient() {
+  const fname = document.getElementById('p-fname').value.trim();
+  const lname = document.getElementById('p-lname').value.trim();
+  const gender = document.getElementById('p-gender').value;
+  const phone  = document.getElementById('p-phone').value.trim();
+  if (!fname || !lname || !gender || !phone) { alert('Please fill all required fields (*)'); return; }
+  const chronic = [...document.querySelectorAll('#chronic-group .chip-sm.selected')].map(c => c.textContent);
+  patientData = {
+    firstName: fname, lastName: lname,
+    dob: document.getElementById('p-dob').value,
+    gender, phone,
+    email: document.getElementById('p-email').value,
+    height: document.getElementById('p-height').value,
+    weight: document.getElementById('p-weight').value,
+    bloodGroup: document.getElementById('p-blood').value,
+    chronic, allergies: document.getElementById('p-allergies').value,
+    medications: document.getElementById('p-meds').value,
+  };
+  showPage('symptoms');
+}
+
+document.getElementById('p-height').addEventListener('input', updateBMI);
+document.getElementById('p-weight').addEventListener('input', updateBMI);
+function updateBMI() {
+  const h = parseFloat(document.getElementById('p-height').value);
+  const w = parseFloat(document.getElementById('p-weight').value);
+  const box = document.getElementById('bmi-display');
+  if (h && w) {
+    const bmi = (w / ((h/100)**2)).toFixed(1);
+    const cat = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal ✅' : bmi < 30 ? 'Overweight' : 'Obese';
+    box.style.display = 'block';
+    box.textContent = `BMI: ${bmi} — ${cat}`;
+  } else { box.style.display = 'none'; }
+}
+
+// ═══════════════════════════════════════════════════════
+//  SYMPTOMS
+// ═══════════════════════════════════════════════════════
+function buildSymptomGroups() {
+  const container = document.getElementById('symptom-groups');
+  container.innerHTML = '';
+  for (const [group, syms] of Object.entries(SYMPTOM_GROUPS)) {
+    const div = document.createElement('div');
+    div.style.marginBottom = '20px';
+    div.innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:10px;text-transform:uppercase;">${group}</div>
+      <div class="chip-group">${syms.map(s => `<button class="chip" onclick="toggleSymptom(this,'${s}')">${s}</button>`).join('')}</div>`;
+    container.appendChild(div);
+  }
+}
+
+function toggleSymptom(el, sym) {
+  if (el.classList.contains('selected')) {
+    el.classList.remove('selected');
+    selectedSymptoms = selectedSymptoms.filter(s => s !== sym);
+  } else {
+    el.classList.add('selected');
+    selectedSymptoms.push(sym);
+  }
+  document.getElementById('sym-count').textContent = selectedSymptoms.length + ' selected';
+}
+
+// ═══════════════════════════════════════════════════════
+//  ANALYSIS ENGINE
+// ═══════════════════════════════════════════════════════
+function findDisease(symptoms) {
+  const lower = symptoms.map(s => s.toLowerCase());
+  let best = null, bestScore = 0;
+  for (const d of DISEASE_DB) {
+    let count = 0;
+    for (const k of d.keys) {
+      if (lower.some(s => s.includes(k) || k.includes(s))) count++;
+    }
+    const score = count / d.keys.length;
+    if (count >= d.min && score > bestScore) { bestScore = score; best = { ...d, confidence: Math.round(60 + score * 35) }; }
+  }
+  if (!best) best = { disease:"Viral Syndrome", icd:"B34.9", confidence:62, sev:"Mild", rec:"5–7 days", spec:"General Physician", desc:"A general viral illness. Further evaluation by a physician is recommended for a specific diagnosis.", drugs:[{name:"Paracetamol",type:"Antipyretic",dose:"500mg",freq:"Every 6 hours",dur:"5 days",food:"Yes",note:"For fever and pain"},{name:"Vitamin C",type:"Supplement",dose:"500mg",freq:"Twice daily",dur:"7 days",food:"Yes",note:"Immune support"},{name:"Cetirizine",type:"Antihistamine",dose:"10mg",freq:"Once daily",dur:"5 days",food:"Preferably",note:"For allergy symptoms"}], life:["Rest adequately","Stay hydrated","Eat nutritious food","Avoid self-medicating"], emerg:["Fever above 103°F","Difficulty breathing","Worsening after 3 days"], warn:"Consult a doctor if symptoms do not improve within 5 days." };
+  return best;
+}
+
+function runAnalysis() {
+  if (selectedSymptoms.length < 2) { alert('Please select at least 2 symptoms'); return; }
+  if (!document.getElementById('s-duration').value) { alert('Please specify symptom duration'); return; }
+  if (!patientData.firstName) { alert('Please complete Patient Details first'); showPage('patient'); return; }
+
+  const match = findDisease(selectedSymptoms);
+  const sevInput = document.getElementById('s-severity').value;
+  if (sevInput.includes('Severe')) match.sev = 'Severe';
+  else if (sevInput.includes('Moderate')) match.sev = 'Moderate';
+
+  lastResult = {
+    disease: match.disease, icd: match.icd, confidence: match.confidence,
+    desc: match.desc, severity: match.sev, recovery: match.rec, specialist: match.spec,
+    drugs: match.drugs, lifestyle: match.life, emergency: match.emerg, warning: match.warn,
+    patient: { ...patientData }, symptoms: [...selectedSymptoms],
+    duration: document.getElementById('s-duration').value,
+    date: new Date().toLocaleDateString('en-IN', { dateStyle: 'long' }),
+  };
+
+  // Save to history
+  reportHistory.unshift({ ...lastResult, id: Date.now() });
+  if (currentUser) localStorage.setItem('mc_history_' + currentUser.email, JSON.stringify(reportHistory));
+
+  renderResult(lastResult);
+  showPage('result');
+}
+
+// ═══════════════════════════════════════════════════════
+//  RESULT RENDER
+// ═══════════════════════════════════════════════════════
+const sevColor = s => s === 'Severe' ? '#c0392b' : s === 'Moderate' ? '#d97706' : '#16a34a';
+
+function renderResult(r) {
+  document.getElementById('result-subtitle').textContent =
+    `Generated for ${r.patient.firstName} ${r.patient.lastName} · ${r.date}`;
+
+  const drugsHTML = r.drugs.map((d, i) => `
+    <div class="drug-row">
+      <div class="drug-name-cell">
+        <div style="font-size:10px;color:var(--green);font-weight:700;letter-spacing:1px;margin-bottom:4px;">DRUG ${i+1}</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;">${d.name}</div>
+        <span class="badge" style="background:rgba(10,110,92,0.12);color:var(--green);border:1px solid rgba(10,110,92,0.25);">${d.type}</span>
+      </div>
+      <div class="drug-cell">
+        <div class="drug-cell-label">DOSAGE</div><div class="drug-cell-value">${d.dose}</div>
+        <div class="drug-cell-label" style="margin-top:10px;">DURATION</div><div class="drug-cell-value">${d.dur}</div>
+      </div>
+      <div class="drug-cell">
+        <div class="drug-cell-label">FREQUENCY</div><div class="drug-cell-value">${d.freq}</div>
+        <div class="drug-cell-label" style="margin-top:10px;">WITH FOOD</div><div class="drug-cell-value">${d.food}</div>
+      </div>
+      <div class="drug-cell" style="border-right:none;">
+        <div class="drug-cell-label">NOTES</div><div class="drug-cell-note">${d.note}</div>
+      </div>
+    </div>`).join('');
+
+  const lifeHTML = r.lifestyle.map(t => `<div class="tip-item"><span class="tip-icon" style="color:#16a34a;">✓</span>${t}</div>`).join('');
+  const emergHTML = r.emergency.map(t => `<div class="tip-item"><span class="tip-icon" style="color:var(--red);">!</span>${t}</div>`).join('');
+
+  document.getElementById('result-content').innerHTML = `
+    <div class="disease-banner">
+      <div>
+        <div style="font-size:11px;opacity:0.7;letter-spacing:2px;margin-bottom:6px;">DIAGNOSED CONDITION</div>
+        <div class="disease-title">${r.disease}</div>
+        <div class="disease-desc">${r.desc}</div>
+        <div style="margin-top:10px;font-size:12px;opacity:0.7;">ICD-10: <strong>${r.icd}</strong></div>
+      </div>
+      <div style="display:flex;gap:14px;">
+        <div class="conf-box"><div class="conf-value">${r.confidence}%</div><div class="conf-label">CONFIDENCE</div></div>
+        <div class="conf-box"><div class="conf-value" style="font-size:18px;">${r.icd}</div><div class="conf-label">ICD-10</div></div>
+      </div>
+    </div>
+    <div class="grid-4" style="margin-bottom:22px;">
+      <div class="card" style="padding:16px;text-align:center;"><div style="font-size:24px;margin-bottom:6px;">🎯</div><div style="font-size:10px;color:var(--muted);margin-bottom:6px;">SEVERITY</div><span class="badge" style="background:${sevColor(r.severity)}18;color:${sevColor(r.severity)};border:1px solid ${sevColor(r.severity)}44;">${r.severity}</span></div>
+      <div class="card" style="padding:16px;text-align:center;"><div style="font-size:24px;margin-bottom:6px;">⏱️</div><div style="font-size:10px;color:var(--muted);margin-bottom:6px;">RECOVERY</div><div style="font-weight:700;font-size:13px;">${r.recovery}</div></div>
+      <div class="card" style="padding:16px;text-align:center;"><div style="font-size:24px;margin-bottom:6px;">🏥</div><div style="font-size:10px;color:var(--muted);margin-bottom:6px;">SPECIALIST</div><div style="font-weight:700;font-size:12px;">${r.specialist}</div></div>
+      <div class="card" style="padding:16px;text-align:center;"><div style="font-size:24px;margin-bottom:6px;">👤</div><div style="font-size:10px;color:var(--muted);margin-bottom:6px;">PATIENT</div><div style="font-weight:700;font-size:12px;">${r.patient.firstName} ${r.patient.lastName}</div></div>
+    </div>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-title">💊 Recommended Medications</div>
+      ${drugsHTML}
+    </div>
+    <div class="grid-2" style="margin-bottom:20px;">
+      <div class="card"><div class="card-title" style="color:#16a34a;">🌿 Lifestyle & Home Care</div>${lifeHTML}</div>
+      <div class="card">
+        <div class="card-title" style="color:var(--orange);">⚠️ Seek Immediate Care If...</div>
+        ${emergHTML}
+        <div style="margin-top:12px;padding:10px 14px;background:#fef2f2;border-radius:8px;font-size:12px;color:var(--red);line-height:1.6;">${r.warning}</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:20px;background:#f8fafc;">
+      <div style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:12px;letter-spacing:0.5px;">PATIENT SUMMARY</div>
+      <div class="grid-4" style="font-size:13px;">
+        <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px;">Name</div><div style="font-weight:600;">${r.patient.firstName} ${r.patient.lastName}</div></div>
+        <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px;">Blood Group</div><div style="font-weight:600;">${r.patient.bloodGroup || 'Unknown'}</div></div>
+        <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px;">Allergies</div><div style="font-weight:600;">${r.patient.allergies || 'None'}</div></div>
+        <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px;">Conditions</div><div style="font-weight:600;">${r.patient.chronic?.join(', ') || 'None'}</div></div>
+      </div>
+    </div>
+    <div class="disclaimer">⚕️ <strong>Medical Disclaimer:</strong> This recommendation is for educational purposes only. Always consult a qualified healthcare professional before starting any medication.</div>
+    <div style="display:flex;justify-content:space-between;margin-top:20px;">
+      <button class="btn btn-outline" onclick="showPage('symptoms')">← Modify Symptoms</button>
+      <button class="btn btn-primary" onclick="newAnalysis()">🔄 New Analysis</button>
+    </div>`;
+}
+
+function newAnalysis() {
+  patientData = {}; selectedSymptoms = []; lastResult = null;
+  document.querySelectorAll('.chip.selected').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.chip-sm.selected').forEach(c => c.classList.remove('selected'));
+  document.getElementById('sym-count').textContent = '0 selected';
+  ['p-fname','p-lname','p-phone','p-email','p-height','p-weight','p-allergies','p-meds'].forEach(id => document.getElementById(id).value = '');
+  ['p-gender','p-blood','s-duration','s-severity','s-timing','s-temp'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('s-desc').value = '';
+  showPage('patient');
+}
+
+// ═══════════════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════════════
+function updateDashboard() {
+  document.getElementById('stat-total').textContent = reportHistory.length;
+  document.getElementById('stat-last').textContent  = reportHistory[0]?.disease || '—';
+  document.getElementById('stat-conf').textContent  = reportHistory.length
+    ? Math.round(reportHistory.reduce((a,r)=>a+r.confidence,0)/reportHistory.length) + '%' : '—';
+  document.getElementById('stat-severe').textContent = reportHistory.filter(r=>r.severity==='Severe').length;
+
+  const list = document.getElementById('dash-history-list');
+  if (!reportHistory.length) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><div style="font-size:40px;margin-bottom:12px;">🔬</div><p>No reports yet. Start your first analysis!</p></div>';
+    return;
+  }
+  list.innerHTML = reportHistory.slice(0,5).map((r,i) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 0;${i<Math.min(reportHistory.length,5)-1?'border-bottom:1px solid #f0f4f8':''}">
+      <div>
+        <div style="font-weight:700;font-size:15px;">${r.disease}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px;">${r.patient.firstName} ${r.patient.lastName} · ${r.date} · ${r.confidence}% confidence</div>
+      </div>
+      <span class="badge" style="background:${sevColor(r.severity)}18;color:${sevColor(r.severity)};border:1px solid ${sevColor(r.severity)}44;">${r.severity}</span>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  HISTORY
+// ═══════════════════════════════════════════════════════
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  if (!reportHistory.length) {
+    list.innerHTML = '<div class="card" style="text-align:center;padding:70px;"><div style="font-size:50px;margin-bottom:14px;">📋</div><h3 style="margin-bottom:8px;">No Reports Yet</h3><p style="color:var(--muted);margin-bottom:20px;">Complete your first analysis to see reports here.</p><button class="btn btn-primary" onclick="showPage(\'patient\')">Start Analysis</button></div>';
+    return;
+  }
+  list.innerHTML = reportHistory.map((r, i) => `
+    <div class="history-item">
+      <div class="history-header" onclick="toggleHistory(${i})">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:42px;height:42px;border-radius:12px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🦠</div>
+          <div>
+            <div style="font-weight:700;font-size:15px;">${r.disease}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:3px;">${r.patient.firstName} ${r.patient.lastName} · ${r.date} · ${r.confidence}% confidence</div>
+            <div style="margin-top:6px;display:flex;gap:6px;">${r.drugs.slice(0,3).map(d=>`<span class="badge" style="background:rgba(10,110,92,0.1);color:var(--green);border:1px solid rgba(10,110,92,0.2);">${d.name}</span>`).join('')}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="badge" style="background:${sevColor(r.severity)}18;color:${sevColor(r.severity)};border:1px solid ${sevColor(r.severity)}44;">${r.severity}</span>
+          <span style="color:var(--muted);" id="hist-arrow-${i}">▼</span>
+        </div>
+      </div>
+      <div class="history-body" id="hist-body-${i}">
+        <div class="grid-3" style="margin-bottom:14px;font-size:13px;">
+          <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px;">ICD-10</div><div style="font-weight:600;">${r.icd}</div></div>
+          <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px;">Recovery</div><div style="font-weight:600;">${r.recovery}</div></div>
+          <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px;">Specialist</div><div style="font-weight:600;">${r.specialist}</div></div>
+        </div>
+        <div style="margin-bottom:12px;"><div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:8px;">SYMPTOMS REPORTED</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">${r.symptoms.map(s=>`<span style="padding:3px 10px;border-radius:999px;font-size:12px;background:var(--green-light);color:var(--green);">${s}</span>`).join('')}</div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;">
+          <button class="btn btn-sm" style="background:#fef2f2;color:var(--red);border:1px solid #fecaca;" onclick="deleteReport(${i})">🗑️ Delete</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleHistory(i) {
+  const body  = document.getElementById('hist-body-' + i);
+  const arrow = document.getElementById('hist-arrow-' + i);
+  const open  = body.classList.toggle('open');
+  arrow.textContent = open ? '▲' : '▼';
+}
+
+function deleteReport(i) {
+  if (!confirm('Delete this report?')) return;
+  reportHistory.splice(i, 1);
+  if (currentUser) localStorage.setItem('mc_history_' + currentUser.email, JSON.stringify(reportHistory));
+  renderHistory();
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+window.onload = () => {
+  const session = localStorage.getItem('mc_session');
+  if (session) loginUser(JSON.parse(session));
+};
+</script>
+</body>
+</html>
